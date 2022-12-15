@@ -23,7 +23,7 @@ class Assembler
       'load' => /load\s(r[0-9]|zero),(r[0-9]|zero),([0-9]|zero)/,
       'store' => /store\s(r[0-9]|zero),(r[0-9]|zero),([0-9]|zero)/,
       'jmp' => /jmp\s(\w*),(r[0-9]|zero)/,
-      'braz' => /braz\s(r[0-9]|zero),([0-9]|zero)/,
+      'braz' => /braz\s(r[0-9]|zero),(\w*)/,
       'branz' => /branz\s(r[0-9]|zero),([0-9]|zero)/,
       'scall' => /scall\s([0-9]|zero)/,
       'label' => /([a-z]+):/,
@@ -49,10 +49,17 @@ class Assembler
     res
   end
 
-  def exec
+  def exec(save = true)
     @labels = _readlabels
     @operations = _readops
     @assembled = _assemble
+    if save
+      File.open(@output, 'w') do |f|
+        f.write(@assembled)
+      end
+    else
+      printbinary
+    end
   end
 
   def _readlabels
@@ -68,9 +75,11 @@ class Assembler
   def _readops
     ops = []
     @content.each do |line|
-      next if line[0] == ';'
+      next if line[0] == ';' || line.nil?
 
       line = line.split(': ')[1] if line.include?(':')
+      next if line.nil?
+
       line = line.split(';')[0] if line.include?(';')
       @regexes.each do |op, regex|
         next unless line.match(regex)
@@ -106,42 +115,82 @@ class Assembler
       res += (0xFFFFF & v) << 5
     end
     res += (0b11111 & r2)
-
     res
   end
 
-  def jump(params)
+  def jmp(params)
     # handle jump to label
+    label, r = params.split(',')
+    raise "Error in jmp #{params}" unless @regs.include?(r)
+
     res = @opcodes.index('jmp') << 27
-    res.to_s
+    if @labels.include?(label)
+      ll = @labels[label]
+      res += (0b11111111111111111111 & ll) << 5
+    else
+      res += 1 << 26
+      if (label = ~/\w+/)
+        ll = @labels[label]
+        raise "Error in jmp #{params}" unless ll
+
+        label = ll
+      else
+        label = label.to_i
+      end
+      res += (0b11111111111111111111 & label) << 5
+    end
+    r = @regs.index(r)
+    res += (0b11111 & r)
+    res
+  end
+
+  def braz(params, op = 'braz')
+    r, offset = params.split(',')
+    raise "Error in braz #{params}" unless @regs.include?(r)
+
+    res = @opcodes.index(op) << 27
+    r = @regs.index(r)
+    res += r << 22
+    res += (0b11111111111111111111 & offset.to_i) << 5
+    res
+  end
+
+  def branz(params)
+    braz(params, 'branz')
+  end
+
+  def scall(params)
+    params = params.split(',')[0]
+    res = @opcodes.index('scall') << 27
+    i = params.first.to_i
+    res += (0b11111111111111111111 & i) << 5
+    res
+  end
+
+  def stop(params)
+    @opcodes.index('stop') << 27
   end
 
   def _assemble
     # operations on 16 bits
     res = ''
     @operations.each do |op, params|
-      case op
-      when 'stop'
-        puts 'stop'
-      when 'jmp'
-        res += jump(params)
-      when 'braz', 'branz'
-        puts 'braz'
-      when 'scall'
-        puts 'scall'
-      else
-        res += op_ternary(op, params).to_s
-      end
+      # stop, jmp, braz, branz, scall
+      calc = if params.split(',').length == 3
+               op_ternary(op, params)
+             else
+               send(op, params)
+              end
+      res += "#{calc.to_s(2).rjust(32, '0')}\n"
     end
     res
   end
-  
+
   def printbinary
     puts @assembled
   end
 end
 
 
-a = Assembler.new('asm/chenillard.asm', '../../bin/chenillard.bin')
-a.exec
-a.printbinary
+a = Assembler.new('asm/matrix_3x3.asm', 'out/matrix.bin')
+a.exec(false)
