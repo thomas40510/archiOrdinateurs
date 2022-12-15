@@ -29,24 +29,24 @@ class Assembler
     @regs = %w[zero r0 r1 r2 r3 r4 r5 r6 r7 r8 r9 r10 r11 r12 r13 r14 r15]
     @regexes = {
       'stop' => /stop/,
-      'add' => /add\s(r[0-9]|zero),((r|)[0-9]|zero),(r[0-9]|zero)/,
-      'sub' => /sub\s(r[0-9]|zero),((r|)[0-9]|zero),(r[0-9]|zero)/,
-      'mul' => /mul\s(r[0-9]|zero),((r|)[0-9]|zero),(r[0-9]|zero)/,
-      'div' => /div\s(r[0-9]|zero),((r|)[0-9]|zero),(r[0-9]|zero)/,
-      'and' => /and\s(r[0-9]|zero),(r[0-9]|zero),(r[0-9]|zero)/,
-      'or' => /or\s(r[0-9]|zero),(r[0-9]|zero),(r[0-9]|zero)/,
-      'xor' => /xor\s(r[0-9]|zero),(r[0-9]|zero),(r[0-9]|zero)/,
-      'shl' => /shl\s(r[0-9]|zero),(r[0-9]|zero),(r[0-9]|zero)/,
-      'shr' => /shr\s(r[0-9]|zero),(r[0-9]|zero),(r[0-9]|zero)/,
-      'slt' => /slt\s(r[0-9]|zero),(r[0-9]|zero),(r[0-9]|zero)/,
-      'sle' => /sle\s(r[0-9]|zero),(r[0-9]|zero),(r[0-9]|zero)/,
-      'seq' => /seq\s(r[0-9]|zero),(r[0-9]|zero),(r[0-9]|zero)/,
-      'load' => /load\s(r[0-9]|zero),(r[0-9]|zero),([0-9]|zero)/,
-      'store' => /store\s(r[0-9]|zero),(r[0-9]|zero),([0-9]|zero)/,
-      'jmp' => /jmp\s(\w*),(r[0-9]|zero)/,
-      'braz' => /braz\s(r[0-9]|zero),(\w*)/,
-      'branz' => /branz\s(r[0-9]|zero),([0-9]|zero)/,
-      'scall' => /scall\s([0-9]|zero)/,
+      'add' => /add\s(r[0-9]|r[0-9][0-9]),((r|)[0-9]|r[0-9][0-9]),(r[0-9]|r[0-9][0-9])/,
+      'sub' => /sub\s(r[0-9]|r[0-9][0-9]),((r|)[0-9]|r[0-9][0-9]),(r[0-9]|r[0-9][0-9])/,
+      'mul' => /mul\s(r[0-9]|r[0-9][0-9]),((r|)[0-9]|r[0-9][0-9]),(r[0-9]|r[0-9][0-9])/,
+      'div' => /div\s(r[0-9]|r[0-9][0-9]),((r|)[0-9]|r[0-9][0-9]),(r[0-9]|r[0-9][0-9])/,
+      'and' => /and\s(r[0-9]|r[0-9][0-9]),(r[0-9]|r[0-9][0-9]),(r[0-9]|r[0-9][0-9])/,
+      'or' => /or\s(r[0-9]|r[0-9][0-9]),(r[0-9]|r[0-9][0-9]),(r[0-9]|r[0-9][0-9])/,
+      'xor' => /xor\s(r[0-9]|r[0-9][0-9]),(r[0-9]|r[0-9][0-9]),(r[0-9]|r[0-9][0-9])/,
+      'shl' => /shl\s(r[0-9]|r[0-9][0-9]),(r[0-9]|r[0-9][0-9]),(r[0-9]|r[0-9][0-9])/,
+      'shr' => /shr\s(r[0-9]|r[0-9][0-9]),(r[0-9]|r[0-9][0-9]),(r[0-9]|r[0-9][0-9])/,
+      'slt' => /slt\s(r[0-9]|r[0-9][0-9]),(r[0-9]|r[0-9][0-9]),(r[0-9]|r[0-9][0-9])/,
+      'sle' => /sle\s(r[0-9]|r[0-9][0-9]),(r[0-9]|r[0-9][0-9]),(r[0-9]|r[0-9][0-9])/,
+      'seq' => /seq\s(r[0-9]|r[0-9][0-9]),(r[0-9]|r[0-9][0-9]),(r[0-9]|r[0-9][0-9])/,
+      'load' => /load\s(r[0-9]|r[0-9][0-9]),(r[0-9]|r[0-9][0-9]),([0-9]|r[0-9][0-9])/,
+      'store' => /store\s(r[0-9]|r[0-9][0-9]),(r[0-9]|r[0-9][0-9]),([0-9]|r[0-9][0-9])/,
+      'jmp' => /jmp\s(\w*),(r[0-9]|r[0-9][0-9])/,
+      'braz' => /braz\s(r[0-9]|r[0-9][0-9]),(\w*)/,
+      'branz' => /branz\s(r[0-9]|r[0-9][0-9]),([0-9]|r[0-9][0-9])/,
+      'scall' => /scall\s([0-9]|r[0-9][0-9])/,
       'label' => /([a-z]+):/,
       'comment' => /;.*/
     }
@@ -119,60 +119,60 @@ class Assembler
     end
   end
 
+  #   def op_ternary(op, params)
+  #     r1, v, r2 = params.split(',')
+  #     raise "Error in #{op} #{params}" unless @regs.include?(r1) && @regs.include?(r2)
+  #
+  #     res = @opcodes[op] << 27
+  #     r1 = @regs.index(r1)
+  #     r2 = @regs.index(r2)
+  #     res += r1 << 22
+  #     if @regs.include?(v)
+  #       v = @regs.index(v)
+  #       res += (0xFFF & v) << 5
+  #     else
+  #       res += 1 << 21
+  #       v = v.to_i
+  #       res += (0xFFFFF & v) << 5
+  #     end
+  #     res += (0b11111 & r2)
+  #     res
+  #   end
+
   def op_ternary(op, params)
     r1, v, r2 = params.split(',')
-    raise "Error in #{op} #{params}" unless @regs.include?(r1) && @regs.include?(r2)
-
     res = @opcodes[op] << 27
-    r1 = @regs.index(r1)
-    r2 = @regs.index(r2)
-    res += r1 << 22
-    if @regs.include?(v)
-      v = @regs.index(v)
-      res += (0xFFF & v) << 5
-    else
-      res += 1 << 21
-      v = v.to_i
-      res += (0xFFFFF & v) << 5
-    end
-    res += (0b11111 & r2)
+    res += @regs.index(r1) << 22
+    res += if @regs.include?(v)
+             0 << 21
+           else
+             1 << 21
+           end
+    res += (0xFFFFF & v.to_i) << 5 if @regs.include?(v)
+    res += (0xFFFFF & v.to_i) << 5 unless @regs.include?(v)
+    res += @regs.index(r2)
+
     res
   end
 
   def jmp(params)
-    # handle jump to label
-    label, r = params.split(',')
-    raise "Error in jmp #{params}" unless @regs.include?(r)
-
+    label, r1 = params.split(',')
     res = @opcodes['jmp'] << 27
-    if @labels.include?(label)
-      ll = @labels[label]
-      res += (0b11111111111111111111 & ll) << 5
-    else
-      res += 1 << 26
-      if (label = ~/\w+/)
-        ll = @labels[label]
-        raise "Error in jmp #{params}" unless ll
-
-        label = ll
-      else
-        label = label.to_i
-      end
-      res += (0b11111111111111111111 & label) << 5
-    end
-    r = @regs.index(r)
-    res += (0b11111 & r)
+    res += if @regs.include?(r1)
+             0 << 26
+           else
+             1 << 26
+           end
+    res += @regs.index(r1) << 5
+    res += @labels[label]
     res
   end
 
   def braz(params, op = 'braz')
     r, offset = params.split(',')
-    raise "Error in braz #{params}" unless @regs.include?(r)
-
     res = @opcodes[op] << 27
-    r = @regs.index(r)
-    res += r << 22
-    res += (0b11111111111111111111 & offset.to_i) << 5
+    res += @regs.index(r) << 22
+    res += @labels[offset].to_i
     res
   end
 
@@ -189,20 +189,20 @@ class Assembler
   end
 
   def stop(_params)
-    35 << 27
+    0b00000
   end
 
   def _assemble
     # operations on 16 bits
     res = ''
     @operations.each do |op, params|
-      # stop, jmp, braz, branz, scall
       calc = if params.split(',').length == 3
                op_ternary(op, params)
              else
                send(op, params)
              end
-      res += "#{calc.to_s(2).rjust(32, '0')}\n"
+      calc = calc.to_s(16).rjust(8, '0')
+      res += "#{calc}\n"
     end
     res
   end
