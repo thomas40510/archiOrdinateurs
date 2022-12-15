@@ -112,13 +112,6 @@ class Assembler
     ops
   end
 
-  def printops
-    @operations = _readops
-    @operations.each do |op|
-      puts op
-    end
-  end
-
   #   def op_ternary(op, params)
   #     r1, v, r2 = params.split(',')
   #     raise "Error in #{op} #{params}" unless @regs.include?(r1) && @regs.include?(r2)
@@ -214,4 +207,4 @@ end
 
 
 a = Assembler.new('asm/matrix_3x3.asm', 'out/matrix.bin')
-a.exec(false)
+a.exec(true)
