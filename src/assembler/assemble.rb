@@ -4,7 +4,28 @@
 #
 class Assembler
   def initialize(file, output = 'out/output.bin')
-    @opcodes = %w[stop add sub mul div and or xor shl shr slt sle seq load store jmp braz branz scall]
+    @ops = %w[stop ff add sub mul div and or xor shl shr slt sle seq load store jmp braz branz scall]
+    @opcodes = {
+      'add' => 0b00001,
+      'sub' => 0b00010,
+      'mul' => 0b00011,
+      'div' => 0b00100,
+      'and' => 0b00101,
+      'or' => 0b00110,
+      'xor' => 0b00111,
+      'shl' => 0b01000,
+      'shr' => 0b01001,
+      'slt' => 0b01010,
+      'sle' => 0b01011,
+      'seq' => 0b01100,
+      'load' => 0b01101,
+      'store' => 0b01110,
+      'jmp' => 0b01111,
+      'braz' => 0b10000,
+      'branz' => 0b10001,
+      'scall' => 0b10010,
+      'stop' => 0b00000
+    }
     @regs = %w[zero r0 r1 r2 r3 r4 r5 r6 r7 r8 r9 r10 r11 r12 r13 r14 r15]
     @regexes = {
       'stop' => /stop/,
@@ -102,7 +123,7 @@ class Assembler
     r1, v, r2 = params.split(',')
     raise "Error in #{op} #{params}" unless @regs.include?(r1) && @regs.include?(r2)
 
-    res = @opcodes.index(op) << 27
+    res = @opcodes[op] << 27
     r1 = @regs.index(r1)
     r2 = @regs.index(r2)
     res += r1 << 22
@@ -123,7 +144,7 @@ class Assembler
     label, r = params.split(',')
     raise "Error in jmp #{params}" unless @regs.include?(r)
 
-    res = @opcodes.index('jmp') << 27
+    res = @opcodes['jmp'] << 27
     if @labels.include?(label)
       ll = @labels[label]
       res += (0b11111111111111111111 & ll) << 5
@@ -148,7 +169,7 @@ class Assembler
     r, offset = params.split(',')
     raise "Error in braz #{params}" unless @regs.include?(r)
 
-    res = @opcodes.index(op) << 27
+    res = @opcodes[op] << 27
     r = @regs.index(r)
     res += r << 22
     res += (0b11111111111111111111 & offset.to_i) << 5
@@ -161,14 +182,14 @@ class Assembler
 
   def scall(params)
     params = params.split(',')[0]
-    res = @opcodes.index('scall') << 27
+    res = @opcodes['scall'] << 27
     i = params.first.to_i
     res += (0b11111111111111111111 & i) << 5
     res
   end
 
-  def stop(params)
-    @opcodes.index('stop') << 27
+  def stop(_params)
+    35 << 27
   end
 
   def _assemble
@@ -180,7 +201,7 @@ class Assembler
                op_ternary(op, params)
              else
                send(op, params)
-              end
+             end
       res += "#{calc.to_s(2).rjust(32, '0')}\n"
     end
     res
