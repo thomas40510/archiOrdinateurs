@@ -63,7 +63,6 @@ enum{
     OP_LDI,    /* load indirect */
     OP_STI,    /* store indirect */
     OP_JMP,    /* jump */
-    OP_RES,    /* reserved (unused) */
     OP_LEA,    /* load effective address */
     OP_TRAP    /* execute trap */
 };
@@ -155,6 +154,7 @@ int read_image(const char* image_path){
     FILE* file = fopen(image_path, "rb");
     if (!file) { return 0; };
     read_image_file(file);
+    fprintf(stderr, "Loaded image '%s'\n", image_path);
     fclose(file);
     return 1;
 }
@@ -220,7 +220,6 @@ int main(int argc, char *argv[]){
         /* FETCH */
         u_int16_t instr = mem_read(reg[R_PC]++);
         u_int16_t op = instr >> 12;
-
         switch(op){
             case OP_ADD:
             {
@@ -414,7 +413,6 @@ int main(int argc, char *argv[]){
                 }
             }
                 break;
-            case OP_RES:
             case OP_RTI:
             default:
                 abort();
