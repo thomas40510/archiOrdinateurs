@@ -4,7 +4,7 @@
 #
 class Assembler
   def initialize(file, output = 'out/output.bin')
-    @ops = %w[stop ff add sub mul div and or xor shl shr slt sle seq load store jmp braz branz scall]
+    @ops = %w[stop add sub mul div and or xor shl shr slt sle seq load store jmp braz branz scall]
     @opcodes = {
       'add' => 0b00001,
       'sub' => 0b00010,
