@@ -176,7 +176,7 @@ class Assembler
   def scall(params)
     params = params.split(',')[0]
     res = @opcodes['scall'] << 27
-    i = params.first.to_i
+    i = params.to_i
     res += (0b11111111111111111111 & i) << 5
     res
   end
@@ -206,5 +206,5 @@ class Assembler
 end
 
 
-a = Assembler.new('asm/matrix_3x3.asm', 'out/matrix.bin')
+a = Assembler.new('asm/12.asm', 'out/12.bin')
 a.exec(true)
