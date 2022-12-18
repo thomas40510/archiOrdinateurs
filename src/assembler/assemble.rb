@@ -4,29 +4,8 @@
 #
 class Assembler
   def initialize(file, output = 'out/output.bin')
-    @ops = %w[stop add sub mul div and or xor shl shr slt sle seq load store jmp braz branz scall]
-    @opcodes = {
-      'add' => 0b00001,
-      'sub' => 0b00010,
-      'mul' => 0b00011,
-      'div' => 0b00100,
-      'and' => 0b00101,
-      'or' => 0b00110,
-      'xor' => 0b00111,
-      'shl' => 0b01000,
-      'shr' => 0b01001,
-      'slt' => 0b01010,
-      'sle' => 0b01011,
-      'seq' => 0b01100,
-      'load' => 0b01101,
-      'store' => 0b01110,
-      'jmp' => 0b01111,
-      'braz' => 0b10000,
-      'branz' => 0b10001,
-      'scall' => 0b10010,
-      'stop' => 0b00000
-    }
-    @regs = %w[zero r0 r1 r2 r3 r4 r5 r6 r7 r8 r9 r10 r11 r12 r13 r14 r15]
+    @opcodes = %w[stop add sub mul div and or xor shl shr slt sle seq load store jmp braz branz scall]
+    @regs = %w[r0 r1 r2 r3 r4 r5 r6 r7 r8 r9 r10 r11 r12 r13 r14 r15]
     @regexes = {
       'stop' => /stop/,
       'add' => /add\s(r[0-9]|r[0-9][0-9]),((r|)[0-9]|r[0-9][0-9]),(r[0-9]|r[0-9][0-9])/,
@@ -74,10 +53,12 @@ class Assembler
     @labels = _readlabels
     @operations = _readops
     @assembled = _assemble
+    res = _gencontent
     if save
       File.open(@output, 'w') do |f|
-        f.write(@assembled)
+        f.write(res)
       end
+      puts "[Log/I]: Assembled file saved to #{@output}"
     else
       printbinary
     end
@@ -88,25 +69,52 @@ class Assembler
     @content.each do |line|
       next unless line.include?(':')
 
-      labels[line.split(':')[0]] = @content.index(line)
+      label, newline = line.split(':')
+      labels[label] = @content.index(line)
+      if newline.nil? || newline.empty?
+        @content.delete(line)
+      else
+        newline.strip!
+        @content[@content.index(line)] = newline
+      end
+      puts "[Log/I]: Label #{label} found at line #{labels[label]}"
     end
     labels
   end
 
+  # def _readops
+  #   ops = []
+  #   @content.each do |line|
+  #     next if line[0] == ';' || line.nil?
+  #
+  #     line = line.split(': ')[1] if line.include?(':')
+  #     next if line.nil?
+  #
+  #     line = line.split(';')[0] if line.include?(';')
+  #     @regexes.each do |op, regex|
+  #       next unless line.match(regex)
+  #
+  #       params = line.split(' ')[1]
+  #       ops << [op.to_s, params.to_s]
+  #       puts "[Log/I]: Operation #{op} found with params #{params}"
+  #     end
+  #   end
+  #   ops
+  # end
   def _readops
     ops = []
     @content.each do |line|
-      next if line[0] == ';' || line.nil?
+      next if line[0] == ';' || line.nil? || line.empty?
 
-      line = line.split(': ')[1] if line.include?(':')
-      next if line.nil?
+      line = line.split(';', 2)[0]
+      next if line.nil? || line.empty?
 
-      line = line.split(';')[0] if line.include?(';')
-      @regexes.each do |op, regex|
-        next unless line.match(regex)
-
-        params = line.split(' ')[1]
-        ops << [op.to_s, params.to_s]
+      op, params = line.split(' ')
+      if @opcodes.include?(op)
+        ops << [op, params]
+        puts "[Log/I]: Operation #{op} found with params #{params}"
+      else
+        puts "[Log/E]: Operation #{op} unknown at line #{line}"
       end
     end
     ops
@@ -132,41 +140,59 @@ class Assembler
   #     res
   #   end
 
-  def op_ternary(op, params)
-    r1, v, r2 = params.split(',')
-    res = @opcodes[op] << 27
-    res += @regs.index(r1) << 22
-    res += if @regs.include?(v)
-             0 << 21
-           else
-             1 << 21
-           end
-    res += (0xFFFFF & v.to_i) << 5 if @regs.include?(v)
-    res += (0xFFFFF & v.to_i) << 5 unless @regs.include?(v)
-    res += @regs.index(r2)
+  def _getaddr(reg)
+    if @regs.include?(reg)
+      @regs.index(reg)
+    elsif @labels.include?(reg)
+      @labels[reg]
+    else
+      reg.to_i
+    end
+  end
 
-    res
+  def _isvalue(reg)
+    @regs.include?(reg) ? 0 : 1
+  end
+
+  def op_binary(op, params)
+    r1, v, r2 = params.include?(',') ? params.split(',') : params.split(' ')
+
+    res = @opcodes.index(op) << 27
+    r1 = _getaddr(r1)
+    v = _getaddr(v)
+    r2 = _getaddr(r2)
+    res += r1 << 22
+    res += _isvalue(v) << 21
+    res += if _isvalue(v) == 1
+             v.to_i
+           else
+             _getaddr(v)
+           end
+    res += r2
+
+    res.to_s(16)
   end
 
   def jmp(params)
     label, r1 = params.split(',')
-    res = @opcodes['jmp'] << 27
-    res += if @regs.include?(r1)
-             0 << 26
-           else
-             1 << 26
-           end
-    res += @regs.index(r1) << 5
-    res += @labels[label]
-    res
+    res = @opcodes.index('jmp') << 27
+    label, r1 = r1, label unless @labels.include?(label)
+    r1 = _getaddr(r1)
+    label = _getaddr(label)
+    incl = @regs.include?(r1) ? 0 : 1
+    res += incl << 26
+    res += r1 << 5
+    res += label
+    res.to_s(16)
   end
 
   def braz(params, op = 'braz')
     r, offset = params.split(',')
-    res = @opcodes[op] << 27
-    res += @regs.index(r) << 22
-    res += @labels[offset].to_i
-    res
+    offset, r = r, offset unless @regs.include?(r)
+    res = @opcodes.index(op) << 27
+    res += _getaddr(r) << 22
+    res += _getaddr(offset)
+    res.to_s(16)
   end
 
   def branz(params)
@@ -174,28 +200,52 @@ class Assembler
   end
 
   def scall(params)
-    params = params.split(',')[0]
-    res = @opcodes['scall'] << 27
-    i = params.to_i
-    res += (0b11111111111111111111 & i) << 5
-    res
+    params.to_i.to_s(16)
+  end
+
+  def load(params)
+    r1, r2, offset = params.split(',')
+    res = @opcodes.index('load') << 27
+    res += @regs.index(r1) << 22
+    res += @regs.index(r2) << 5
+    res += @labels[offset].to_i
+    res.to_s(16)
   end
 
   def stop(_params)
     0b00000
   end
 
+  def _isbinary(params)
+    if params.nil? || params.empty?
+      false
+    else
+      sep = params.include?(',') ? ',' : ' '
+      params.split(sep).length == 3
+    end
+  end
+
   def _assemble
     # operations on 16 bits
-    res = ''
+    res = []
+
     @operations.each do |op, params|
-      calc = if params.split(',').length == 3
-               op_ternary(op, params)
+      next unless @opcodes.include?(op)
+
+      puts "[Log/I]: Assembling #{op} with #{params}"
+      res << if _isbinary(params)
+               op_binary(op, params)
              else
                send(op, params)
              end
-      calc = calc.to_s(16).rjust(8, '0')
-      res += "#{calc}\n"
+    end
+    res
+  end
+
+  def _gencontent
+    res = ''
+    @assembled.each do |instruction|
+      res += "#{instruction}\n"
     end
     res
   end
