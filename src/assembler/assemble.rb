@@ -5,7 +5,7 @@
 class Assembler
   def initialize(file, output = 'out/output.bin')
     @opcodes = %w[stop add sub mul div and or xor shl shr slt sle seq load store jmp braz branz scall]
-    @regs = %w[r0 r1 r2 r3 r4 r5 r6 r7 r8 r9 r10 r11 r12 r13 r14 r15]
+    @regs = %w[r0 r1 r2 r3 r4 r5 r6 r7 r8 r9 r10 r11 r12 r13 r14 r15 r16 r17 r18 r19 r20 r21 r22 r23 r24 r25 r26 r27 r28 r29 r30 r31]
     @regexes = {
       'stop' => /stop/,
       'add' => /add\s(r[0-9]|r[0-9][0-9]),((r|)[0-9]|r[0-9][0-9]),(r[0-9]|r[0-9][0-9])/,
@@ -109,7 +109,7 @@ class Assembler
       line = line.split(';', 2)[0]
       next if line.nil? || line.empty?
 
-      op, params = line.split(' ')
+      op, params = line.split(' ', 2)
       if @opcodes.include?(op)
         ops << [op, params]
         puts "[Log/I]: Operation #{op} found with params #{params}"
@@ -157,7 +157,9 @@ class Assembler
   def op_binary(op, params)
     r1, v, r2 = params.include?(',') ? params.split(',') : params.split(' ')
 
-    res = @opcodes.index(op) << 27
+    res = 0b000
+    res = @opcodes.index(op)
+    res << 27
     r1 = _getaddr(r1)
     v = _getaddr(v)
     r2 = _getaddr(r2)
@@ -170,7 +172,7 @@ class Assembler
            end
     res += r2
 
-    res.to_s(16)
+    res
   end
 
   def jmp(params)
@@ -183,7 +185,7 @@ class Assembler
     res += incl << 26
     res += r1 << 5
     res += label
-    res.to_s(16)
+    res
   end
 
   def braz(params, op = 'braz')
@@ -192,7 +194,7 @@ class Assembler
     res = @opcodes.index(op) << 27
     res += _getaddr(r) << 22
     res += _getaddr(offset)
-    res.to_s(16)
+    res
   end
 
   def branz(params)
@@ -200,7 +202,7 @@ class Assembler
   end
 
   def scall(params)
-    params.to_i.to_s(16)
+    params.to_i
   end
 
   def load(params)
@@ -209,7 +211,7 @@ class Assembler
     res += @regs.index(r1) << 22
     res += @regs.index(r2) << 5
     res += @labels[offset].to_i
-    res.to_s(16)
+    res
   end
 
   def stop(_params)
@@ -225,6 +227,10 @@ class Assembler
     end
   end
 
+  def hexa(num)
+    num.to_s(16).rjust(8, '0')
+  end
+
   def _assemble
     # operations on 16 bits
     res = []
@@ -233,12 +239,13 @@ class Assembler
       next unless @opcodes.include?(op)
 
       puts "[Log/I]: Assembling #{op} with #{params}"
-      res << if _isbinary(params)
-               op_binary(op, params)
-             else
-               send(op, params)
-             end
+      res.append(if _isbinary(params)
+                   hexa(op_binary(op, params))
+                 else
+                   hexa(send(op, params))
+                 end)
     end
+    puts res
     res
   end
 
@@ -256,5 +263,5 @@ class Assembler
 end
 
 
-a = Assembler.new('asm/12.asm', 'out/12.bin')
+a = Assembler.new('asm/test_asm.asm', 'out/test_asm.bin')
 a.exec(true)
