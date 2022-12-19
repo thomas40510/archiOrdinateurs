@@ -1,10 +1,30 @@
+require 'colorize'
 # class Assembler
 # Opens an asm file and extracts the instructions to binary
 # instantiate with Assembler.new('path_to_file', 'path_to_output_file')
 #
 class Assembler
   def initialize(file, output = 'out/output.bin')
-    @opcodes = %w[stop add sub mul div and or xor shl shr slt sle seq load store jmp braz branz scall]
+    @opcodes = {
+      'add' => 2, 'addi' => 3,
+      'sub' => 4, 'subi' => 5,
+      'mul' => 6, 'muli' => 7,
+      'div' => 8, 'divi' => 9,
+      'and' => 10, 'andi' => 11,
+      'or' => 12, 'ori' => 13,
+      'xor' => 14, 'xori' => 15,
+      'shl' => 16, 'shli' => 17,
+      'shr' => 18, 'shri' => 19,
+      'slt' => 20, 'slti' => 21,
+      'sle' => 22, 'slei' => 23,
+      'seq' => 24, 'seqi' => 25,
+      'load' => 27,
+      'store' => 29,
+      'jmp' => 30, 'jmpi' => 31,
+      'braz' => 32, 'branz' => 33,
+      'scall' => 34,
+      'stop' => 35
+    }
     @regs = %w[r0 r1 r2 r3 r4 r5 r6 r7 r8 r9 r10 r11 r12 r13 r14 r15 r16 r17 r18 r19 r20 r21 r22 r23 r24 r25 r26 r27 r28 r29 r30 r31]
     @regexes = {
       'stop' => /stop/,
@@ -65,6 +85,7 @@ class Assembler
   end
 
   def _readlabels
+    puts '=========== Reading  labels ==========='.light_blue
     labels = {}
     @content.each do |line|
       next unless line.include?(':')
@@ -79,6 +100,7 @@ class Assembler
       end
       puts "[Log/I]: Label #{label} found at line #{labels[label]}"
     end
+    puts '========= Done reading labels ========='.light_blue
     labels
   end
 
@@ -102,6 +124,7 @@ class Assembler
   #   ops
   # end
   def _readops
+    puts '=========== Reading operations ==========='.green
     ops = []
     @content.each do |line|
       next if line[0] == ';' || line.nil? || line.empty?
@@ -117,6 +140,7 @@ class Assembler
         puts "[Log/E]: Operation #{op} unknown at line #{line}"
       end
     end
+    puts '========= Done reading operations ========='.green
     ops
   end
 
@@ -151,88 +175,95 @@ class Assembler
   end
 
   def _isvalue(reg)
-    @regs.include?(reg) ? 0 : 1
+    !@regs.include?(reg)
   end
 
   def op_binary(op, params)
     r1, v, r2 = params.include?(',') ? params.split(',') : params.split(' ')
 
-    res = 0b000
-    res = @opcodes.index(op)
-    res << 27
-    r1 = _getaddr(r1)
-    v = _getaddr(v)
-    r2 = _getaddr(r2)
-    res += r1 << 22
-    res += _isvalue(v) << 21
-    res += if _isvalue(v) == 1
-             v.to_i
-           else
-             _getaddr(v)
-           end
-    res += r2
+    r2, v = v, r2 unless @regs.include?(v)
 
-    res
+    if _isvalue(r2)
+      op = @opcodes["#{op}i"] << 26
+      r2 = _getaddr(r2) & 0x0000FFFF
+    else
+      op = @opcodes[op] << 26
+      r2 = _getaddr(r2) << 11
+    end
+
+    r1 = _getaddr(r1) << 21
+    v = _getaddr(v) << 16
+    op | r1 | v | r2
   end
 
   def jmp(params)
-    label, r1 = params.split(',')
-    res = @opcodes.index('jmp') << 27
-    label, r1 = r1, label unless @labels.include?(label)
-    r1 = _getaddr(r1)
-    label = _getaddr(label)
-    incl = @regs.include?(r1) ? 0 : 1
-    res += incl << 26
-    res += r1 << 5
-    res += label
-    res
+    ra, rd = splitparams(params)
+    rd, ra = ra, rd unless @regs.include?(rd)
+
+    if _isvalue(rd)
+      op = @opcodes['jmpi'] << 26
+      rd = _getaddr(rd) & 0x000fffff
+    else
+      op = @opcodes['jmp'] << 26
+      rd = _getaddr(rd) << 16
+    end
+
+    rd = _getaddr(rd) << 21
+
+    op | rd | ra
+    # res = @opcodes.index('jmp') << 26
+    # label, r1 = r1, label unless @labels.include?(label)
+    # r1 = _getaddr(r1)
+    # label = _getaddr(label)
+    # incl = @regs.include?(r1) ? 0 : 1
+    # res += incl << 26
+    # res += r1 << 5
+    # res += label
+    # res
   end
 
   def braz(params, op = 'braz')
-    r, offset = params.split(',')
-    offset, r = r, offset unless @regs.include?(r)
-    res = @opcodes.index(op) << 27
-    res += _getaddr(r) << 22
-    res += _getaddr(offset)
-    res
+    rs, addr = splitparams(params)
+    rs, addr = addr, rs unless @regs.include?(rs)
+    op = @opcodes[op] << 26
+    rs = _getaddr(rs) << 21
+    addr = _getaddr(addr) & 0x000fffff
+    op | rs | addr
   end
 
   def branz(params)
     braz(params, 'branz')
   end
 
-  def scall(params)
-    params.to_i
-  end
-
-  def load(params)
-    r1, r2, offset = params.split(',')
-    res = @opcodes.index('load') << 27
-    res += @regs.index(r1) << 22
-    res += @regs.index(r2) << 5
-    res += @labels[offset].to_i
-    res
+  def scall(param)
+    op = @opcodes['scall'] << 26
+    n = _getaddr(param) & 0x03ffffff
+    op | n
   end
 
   def stop(_params)
-    0b00000
+    @opcodes['stop'] << 26
+  end
+
+  def splitparams(params)
+    sep = params.include?(',') ? ',' : ' '
+    params.split(sep)
   end
 
   def _isbinary(params)
     if params.nil? || params.empty?
       false
     else
-      sep = params.include?(',') ? ',' : ' '
-      params.split(sep).length == 3
+      splitparams(params).length == 3
     end
   end
 
-  def hexa(num)
-    num.to_s(16).rjust(8, '0')
+  def bin2hex(bin)
+    bin.to_i.to_s(16).rjust(8, '0')
   end
 
   def _assemble
-    # operations on 16 bits
+    puts '=========== Assembling ==========='.light_green
     res = []
 
     @operations.each do |op, params|
@@ -240,12 +271,12 @@ class Assembler
 
       puts "[Log/I]: Assembling #{op} with #{params}"
       res.append(if _isbinary(params)
-                   hexa(op_binary(op, params))
+                   bin2hex(op_binary(op, params))
                  else
-                   hexa(send(op, params))
+                   bin2hex(send(op, params))
                  end)
     end
-    puts res
+    puts '========= Done assembling ========='.light_green
     res
   end
 
