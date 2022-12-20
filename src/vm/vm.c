@@ -1,3 +1,13 @@
+/** @file vm.c
+ * @brief Implementation of a virtual machine.
+ * @author Thomas Prévost, CSN 2024 @ ENSTA Bretagne
+ * @version 1.0
+ * @date 2022
+ *
+ * This program is an elementary mini-MIPS virtual machine,
+ * capable of reading and executing instructions from a binary file.
+ */
+
 #include <stdio.h>
 #include <stdint.h>
 #include <stdlib.h>
@@ -26,6 +36,8 @@ int ra = 0;
 int addr = 0;
 int val = 0;
 
+char *progname;
+
 u_int32_t imm = 0;  // immediate value
 
 int isRunning = 1;  // program runs while this is 1
@@ -49,9 +61,7 @@ void readSource(char *filename) {
     close(fd);
 }
 
-/*
- * Display registers and their values
- */
+/** @brief Display registers and their values */
 void displayRegs(){
     int reg;
     printf("Registers:\n");
@@ -61,9 +71,7 @@ void displayRegs(){
     printf("\n");
 }
 
-/*
- * Display the memory
- */
+/** @brief Display the memory */
 void displayMem(){
     int i;
     printf("Memory:\n");
@@ -309,7 +317,7 @@ void execOp(int opcode){
                     writeReg(20, usrInput);
                     break;
                 case 1:
-                    printf("[Out]: %d\n", regs[20]);
+                    printf("[%s // Out]: %d\n", progname, regs[20]);
                     break;
                 case 2:
                     printf("%d", regs[20]);
@@ -340,15 +348,25 @@ void execOp(int opcode){
  * Instructions are read from memory and executed until the program stops, or an error is encountered
  */
 void exec(){
+    printf("=== BEGINNING EXECUTION. BINARY IS %s ===\n", progname);
     while (isRunning) {
         instr = mem[pc++];
         opcode = (instr >> 26) & 0x3F;
         execOp(opcode);
     }
     printf("=== END OF PROGRAM ===\n");
+    printf("Last output value: %d\n", regs[20]);
 }
 
-
+/** @brief Main function
+ *
+ * @param argc Number of arguments
+ * @param argv Array of arguments
+ * @return 1 if error, 0 if success
+ *
+ * To run, provide the name of the binary file to be run as an argument
+ * ./vm <filename>
+ */
 int main(int argc, char **argv) {
     if (argc < 2) {
         printf("Error: No input file specified\n");
@@ -356,6 +374,7 @@ int main(int argc, char **argv) {
         return EXIT_FAILURE;
     }
     char *filename = argv[1];
+    progname = filename;
     readSource(filename);
     exec();
 
