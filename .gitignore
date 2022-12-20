@@ -696,3 +696,13 @@ cython_debug/
 #  option (not recommended) you can uncomment the following to ignore the entire idea folder.
 #.idea/
 
+
+src/assembler/asm.py
+
+src/assembler/assm.py
+
+src/assembler/docu/
+
+src/vm/old/
+
+src/vm/vm
