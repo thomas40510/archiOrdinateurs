@@ -66,7 +66,6 @@ void displayMem(){
 
 void writeReg(int reg, int value){
     regs[reg] = (value == 0) ? 0 : value;
-    printf("Write %d to r%d\n", value, reg);
 }
 
 void decodeInstr(int type) {
@@ -93,11 +92,11 @@ void decodeInstr(int type) {
             addr = instr & 0x001FFFFF;
             break;
         case TYPE_B:
-            rs = (instr >> 16) & 0x1F;
+            rs = (instr >> 21) & 0x1F;
             addr = instr & 0x1FFFF;
             break;
         case TYPE_S:
-            val = (instr >> 21) & 0x1F;
+            val = instr & 0x3FFFFFF;
         default:
             break;
     }
@@ -242,16 +241,16 @@ void execOp(int opcode){
             }
             break;
         case OPCODE_SCALL:
-            decodeInstr(TYPE_I);
+            decodeInstr(TYPE_S);
             int usrInput;
-            switch (rs) {
+            switch (val) {
                 case 0:
                     printf("Please enter an integer: ");
                     scanf("%d", &usrInput);
                     writeReg(20, usrInput);
                     break;
                 case 1:
-                    printf("%c", regs[20]);
+                    printf("[Out]: %d\n", regs[20]);
                     break;
                 case 2:
                     printf("%d", regs[20]);
@@ -264,6 +263,7 @@ void execOp(int opcode){
             }
             sleep(1);
             break;
+        case 0:
         case OPCODE_STOP:
             isRunning = 0;
             break;
@@ -293,7 +293,6 @@ int main(int argc, char **argv) {
     char *filename = argv[1];
     readSource(filename);
     exec();
-    displayRegs();
 
     return EXIT_SUCCESS;
 }
