@@ -10,45 +10,7 @@
 #include <sys/termios.h>
 #include <sys/mman.h>
 
-/* Memory storage */
-#define MEMSIZE 2048
-
-/* Opcodes */
-#define OPCODE_ADD 2
-#define OPCODE_ADDI 3
-#define OPCODE_SUB 4
-#define OPCODE_SUBI 5
-#define OPCODE_MUL 6
-#define OPCODE_MULI 7
-#define OPCODE_DIV 8
-#define OPCODE_DIVI 9
-#define OPCODE_AND 10
-#define OPCODE_ANDI 11
-#define OPCODE_OR 12
-#define OPCODE_ORI 13
-#define OPCODE_XOR 14
-#define OPCODE_XORI 15
-#define OPCODE_SHL 16
-#define OPCODE_SHLI 17
-#define OPCODE_SHR 18
-#define OPCODE_SHRI 19
-#define OPCODE_SLT 20
-#define OPCODE_SLTI 21
-#define OPCODE_SLE 22
-#define OPCODE_SLEI 23
-#define OPCODE_SEQ 24
-#define OPCODE_SEQI 25
-#define OPCODE_LOAD 27
-#define OPCODE_STORE 29
-#define OPCODE_JMPR 30
-#define OPCODE_JMPI 31
-#define OPCODE_BRAZ 32
-#define OPCODE_BRANZ 33
-#define OPCODE_SCALL 34
-#define OPCODE_STOP 35
-
-/* Registers */
-#define NBR_REGS 32
+#include "constants.h"
 
 /* Memory */
 u_int32_t mem[MEMSIZE];
@@ -105,14 +67,14 @@ void writeReg(int reg, int value){
     regs[reg] = (value == 0) ? 0 : value;
 }
 
-void decodeInstr(char type) {
+void decodeInstr(int type) {
     switch (type) {
-        case 'r':
+        case TYPE_R:
             rd = (instr >> 21) & 0x1F;
             rs1 = (instr >> 16) & 0x1F;
             rs2 = (instr >> 11) & 0x1F;
             break;
-        case 'i':
+        case TYPE_I:
             rd = (instr >> 21) & 0x1F;
             rs = (instr >> 16) & 0x1F;
             imm = instr & 0x0000FFFF;
@@ -120,123 +82,126 @@ void decodeInstr(char type) {
                 imm |= 0xFFFF0000;
             }
             break;
-        case 'ji':
-            rd = (instr >> 21) & 0x1F;
-            addr = instr & 0x001FFFFF;
-            break;
-        case 'jr':
+        case TYPE_JR:
             rd = (instr >> 21) & 0x1F;
             ra = (instr >> 16) & 0x1F;
             break;
-        case 'b':
+        case TYPE_JI:
+            rd = (instr >> 21) & 0x1F;
+            addr = instr & 0x001FFFFF;
+            break;
+        case TYPE_B:
             rs = (instr >> 16) & 0x1F;
             addr = instr & 0x1FFFF;
             break;
-        case 's':
+        case TYPE_S:
             val = (instr >> 21) & 0x1F;
+        default:
+            break;
     }
 }
 
 void execOp(int opcode){
     switch (opcode) {
         case OPCODE_ADD:
-            decodeInstr('r');
+            decodeInstr(TYPE_R);
             writeReg(rd, regs[rs1] + regs[rs2]);
+            printf("add r%d, r%d, r%d\n", rd, rs1, rs2);
             break;
         case OPCODE_ADDI:
-            decodeInstr('i');
+            decodeInstr(TYPE_I);
             writeReg(rd, regs[rs] + imm);
             break;
         case OPCODE_SUB:
-            decodeInstr('r');
+            decodeInstr(TYPE_R);
             writeReg(rd, regs[rs1] - regs[rs2]);
             break;
         case OPCODE_SUBI:
-            decodeInstr('i');
+            decodeInstr(TYPE_I);
             writeReg(rd, regs[rs] - imm);
             break;
         case OPCODE_MUL:
-            decodeInstr('r');
+            decodeInstr(TYPE_R);
             writeReg(rd, regs[rs1] * regs[rs2]);
             break;
         case OPCODE_MULI:
-            decodeInstr('i');
+            decodeInstr(TYPE_I);
             writeReg(rd, regs[rs] * imm);
             break;
         case OPCODE_DIV:
-            decodeInstr('r');
+            decodeInstr(TYPE_R);
             writeReg(rd, regs[rs1] / regs[rs2]);
             break;
         case OPCODE_DIVI:
-            decodeInstr('i');
+            decodeInstr(TYPE_I);
             writeReg(rd, regs[rs] / imm);
             break;
         case OPCODE_AND:
-            decodeInstr('r');
+            decodeInstr(TYPE_R);
             writeReg(rd, regs[rs1] & regs[rs2]);
             break;
         case OPCODE_ANDI:
-            decodeInstr('i');
+            decodeInstr(TYPE_I);
             writeReg(rd, regs[rs] & imm);
             break;
         case OPCODE_OR:
-            decodeInstr('r');
+            decodeInstr(TYPE_R);
             writeReg(rd, regs[rs1] | regs[rs2]);
             break;
         case OPCODE_ORI:
-            decodeInstr('i');
+            decodeInstr(TYPE_I);
             writeReg(rd, regs[rs] | imm);
             break;
         case OPCODE_XOR:
-            decodeInstr('r');
+            decodeInstr(TYPE_R);
             writeReg(rd, regs[rs1] ^ regs[rs2]);
             break;
         case OPCODE_XORI:
-            decodeInstr('i');
+            decodeInstr(TYPE_I);
             writeReg(rd, regs[rs] ^ imm);
             break;
         case OPCODE_SHL:
-            decodeInstr('r');
+            decodeInstr(TYPE_R);
             writeReg(rd, regs[rs1] << regs[rs2]);
             break;
         case OPCODE_SHLI:
-            decodeInstr('i');
+            decodeInstr(TYPE_I);
             writeReg(rd, regs[rs] << imm);
             break;
         case OPCODE_SHR:
-            decodeInstr('r');
+            decodeInstr(TYPE_R);
             writeReg(rd, regs[rs1] >> regs[rs2]);
             break;
         case OPCODE_SHRI:
-            decodeInstr('i');
+            decodeInstr(TYPE_I);
             writeReg(rd, regs[rs] >> imm);
             break;
         case OPCODE_SLT:
-            decodeInstr('r');
+            decodeInstr(TYPE_R);
             writeReg(rd, regs[rs1] < regs[rs2]);
             break;
         case OPCODE_SLTI:
-            decodeInstr('i');
+            decodeInstr(TYPE_I);
             writeReg(rd, regs[rs] < imm);
             break;
         case OPCODE_SLE:
-            decodeInstr('r');
+            decodeInstr(TYPE_R);
             writeReg(rd, regs[rs1] <= regs[rs2]);
             break;
         case OPCODE_SLEI:
-            decodeInstr('i');
+            decodeInstr(TYPE_I);
             writeReg(rd, regs[rs] <= imm);
             break;
         case OPCODE_SEQ:
-            decodeInstr('r');
+            decodeInstr(TYPE_R);
             writeReg(rd, regs[rs1] == regs[rs2]);
             break;
         case OPCODE_SEQI:
-            decodeInstr('i');
+            decodeInstr(TYPE_I);
             writeReg(rd, regs[rs] == imm);
             break;
         case OPCODE_LOAD:
-            decodeInstr('i');
+            decodeInstr(TYPE_I);
             if (rs + imm < MEMSIZE) {
                 writeReg(rd, mem[rs + imm]);
             } else {
@@ -245,7 +210,7 @@ void execOp(int opcode){
             }
             break;
         case OPCODE_STORE:
-            decodeInstr('s');
+            decodeInstr(TYPE_S);
             if (rs + imm < MEMSIZE) {
                 mem[rs + imm] = val;
             } else {
@@ -254,27 +219,27 @@ void execOp(int opcode){
             }
             break;
         case OPCODE_JMPR:
-            decodeInstr('jr');
+            decodeInstr(TYPE_JR);
             pc = regs[ra];
             break;
         case OPCODE_JMPI:
-            decodeInstr('ji');
+            decodeInstr(TYPE_JI);
             pc = addr;
             break;
         case OPCODE_BRAZ:
-            decodeInstr('b');
+            decodeInstr(TYPE_B);
             if (regs[rs] == 0) {
                 pc += addr;
             }
             break;
         case OPCODE_BRANZ:
-            decodeInstr('b');
+            decodeInstr(TYPE_B);
             if (regs[rs] != 0) {
                 pc += addr;
             }
             break;
         case OPCODE_SCALL:
-            decodeInstr('i');
+            decodeInstr(TYPE_I);
             switch (rs) {
                 case 0:
                     printf("%d\n", regs[rd]);
@@ -286,7 +251,7 @@ void execOp(int opcode){
                     scanf("%d", &regs[rd]);
                     break;
                 case 3:
-                    scanf("%c", &regs[rd]);
+                    scanf("%d", &regs[rd]);
                     break;
                 default:
                     break;
@@ -302,8 +267,25 @@ void execOp(int opcode){
     }
 }
 
+void exec(){
+    while (isRunning) {
+        instr = mem[pc++];
+        opcode = (instr >> 26) & 0x3F;
+        execOp(opcode);
+    }
+    printf("=== END OF PROGRAM ===\n");
+}
 
-int main(int argc, char **argv){
-    printf("Hello world");
-    exit(0);
+
+int main(int argc, char **argv) {
+    if (argc < 2) {
+        printf("Error: No input file specified\n");
+        printf("Usage: %s <input file>\n", argv[0]);
+        return EXIT_FAILURE;
+    }
+    char *filename = argv[1];
+    readSource(filename);
+    exec();
+
+    return EXIT_SUCCESS;
 }

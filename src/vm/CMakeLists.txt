@@ -3,4 +3,4 @@ project(archiOrdinateurs C)
 
 set(CMAKE_C_STANDARD 99)
 
-add_executable(archiOrdinateurs vm.c)
+add_executable(archiOrdinateurs vm.c constants.h)

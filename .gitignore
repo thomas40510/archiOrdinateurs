@@ -704,3 +704,5 @@ src/assembler/assm.py
 src/assembler/docu/
 
 src/vm/old/
+
+src/vm/vm
