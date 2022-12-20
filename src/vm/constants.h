@@ -1,7 +1,14 @@
+/** \headerfile constants.h "constants.h"
+ *  \brief This file defines the constants used by the VM
+ *  \author T. Prévost, CSN 2024 @ ENSTA Bretagne
+ *  \version 1.0
+ *  \date 2022
+ */
+
 /* Memory storage */
 #define MEMSIZE 2048
 
-/* Opcodes */
+/* Opcodes corresponding to operations */
 #define OPCODE_ADD 2
 #define OPCODE_ADDI 3
 #define OPCODE_SUB 4
@@ -35,13 +42,14 @@
 #define OPCODE_SCALL 34
 #define OPCODE_STOP 35
 
-#define TYPE_R 0
-#define TYPE_I 1
-#define TYPE_JR 2
-#define TYPE_JI 3
-#define TYPE_B 4
-#define TYPE_S 5
+/* Types of instructions */
+#define TYPE_R 0    // operate on registers
+#define TYPE_I 1    // operate on register and immediate
+#define TYPE_JR 2   // jump to register
+#define TYPE_JI 3   // jump to immediate (label)
+#define TYPE_B 4    // branch to immediate (label)
+#define TYPE_S 5    // syscall
 
-/* Registers */
+/* Ammount of registers */
 #define NBR_REGS 32
 
