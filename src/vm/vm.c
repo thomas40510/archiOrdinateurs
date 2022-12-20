@@ -295,6 +295,10 @@ void execOp(int opcode){
         case OPCODE_STOP:
             isRunning = 0;
             break;
+        default:
+            printf("Error: Invalid opcode\n");
+            isRunning = 0;
+            break;
     }
 }
 
