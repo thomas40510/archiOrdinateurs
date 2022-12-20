@@ -137,6 +137,167 @@ void decodeInstr(char type) {
     }
 }
 
+void execOp(int opcode){
+    switch (opcode) {
+        case OPCODE_ADD:
+            decodeInstr('r');
+            writeReg(rd, regs[rs1] + regs[rs2]);
+            break;
+        case OPCODE_ADDI:
+            decodeInstr('i');
+            writeReg(rd, regs[rs] + imm);
+            break;
+        case OPCODE_SUB:
+            decodeInstr('r');
+            writeReg(rd, regs[rs1] - regs[rs2]);
+            break;
+        case OPCODE_SUBI:
+            decodeInstr('i');
+            writeReg(rd, regs[rs] - imm);
+            break;
+        case OPCODE_MUL:
+            decodeInstr('r');
+            writeReg(rd, regs[rs1] * regs[rs2]);
+            break;
+        case OPCODE_MULI:
+            decodeInstr('i');
+            writeReg(rd, regs[rs] * imm);
+            break;
+        case OPCODE_DIV:
+            decodeInstr('r');
+            writeReg(rd, regs[rs1] / regs[rs2]);
+            break;
+        case OPCODE_DIVI:
+            decodeInstr('i');
+            writeReg(rd, regs[rs] / imm);
+            break;
+        case OPCODE_AND:
+            decodeInstr('r');
+            writeReg(rd, regs[rs1] & regs[rs2]);
+            break;
+        case OPCODE_ANDI:
+            decodeInstr('i');
+            writeReg(rd, regs[rs] & imm);
+            break;
+        case OPCODE_OR:
+            decodeInstr('r');
+            writeReg(rd, regs[rs1] | regs[rs2]);
+            break;
+        case OPCODE_ORI:
+            decodeInstr('i');
+            writeReg(rd, regs[rs] | imm);
+            break;
+        case OPCODE_XOR:
+            decodeInstr('r');
+            writeReg(rd, regs[rs1] ^ regs[rs2]);
+            break;
+        case OPCODE_XORI:
+            decodeInstr('i');
+            writeReg(rd, regs[rs] ^ imm);
+            break;
+        case OPCODE_SHL:
+            decodeInstr('r');
+            writeReg(rd, regs[rs1] << regs[rs2]);
+            break;
+        case OPCODE_SHLI:
+            decodeInstr('i');
+            writeReg(rd, regs[rs] << imm);
+            break;
+        case OPCODE_SHR:
+            decodeInstr('r');
+            writeReg(rd, regs[rs1] >> regs[rs2]);
+            break;
+        case OPCODE_SHRI:
+            decodeInstr('i');
+            writeReg(rd, regs[rs] >> imm);
+            break;
+        case OPCODE_SLT:
+            decodeInstr('r');
+            writeReg(rd, regs[rs1] < regs[rs2]);
+            break;
+        case OPCODE_SLTI:
+            decodeInstr('i');
+            writeReg(rd, regs[rs] < imm);
+            break;
+        case OPCODE_SLE:
+            decodeInstr('r');
+            writeReg(rd, regs[rs1] <= regs[rs2]);
+            break;
+        case OPCODE_SLEI:
+            decodeInstr('i');
+            writeReg(rd, regs[rs] <= imm);
+            break;
+        case OPCODE_SEQ:
+            decodeInstr('r');
+            writeReg(rd, regs[rs1] == regs[rs2]);
+            break;
+        case OPCODE_SEQI:
+            decodeInstr('i');
+            writeReg(rd, regs[rs] == imm);
+            break;
+        case OPCODE_LOAD:
+            decodeInstr('i');
+            if (rs + imm < MEMSIZE) {
+                writeReg(rd, mem[rs + imm]);
+            } else {
+                printf("Error: Memory address out of bounds\n");
+                exit(1);
+            }
+            break;
+        case OPCODE_STORE:
+            decodeInstr('s');
+            if (rs + imm < MEMSIZE) {
+                mem[rs + imm] = val;
+            } else {
+                printf("Error: Memory address out of bounds\n");
+                exit(1);
+            }
+            break;
+        case OPCODE_JMPR:
+            decodeInstr('jr');
+            pc = regs[ra];
+            break;
+        case OPCODE_JMPI:
+            decodeInstr('ji');
+            pc = addr;
+            break;
+        case OPCODE_BRAZ:
+            decodeInstr('b');
+            if (regs[rs] == 0) {
+                pc += addr;
+            }
+            break;
+        case OPCODE_BRANZ:
+            decodeInstr('b');
+            if (regs[rs] != 0) {
+                pc += addr;
+            }
+            break;
+        case OPCODE_SCALL:
+            decodeInstr('i');
+            switch (rs) {
+                case 0:
+                    printf("%d\n", regs[rd]);
+                    break;
+                case 1:
+                    printf("%c", regs[rd]);
+                    break;
+                case 2:
+                    scanf("%d", &regs[rd]);
+                    break;
+                case 3:
+                    scanf("%c", &regs[rd]);
+                    break;
+                default:
+                    break;
+            }
+            break;
+        case OPCODE_STOP:
+            isRunning = 0;
+            break;
+    }
+}
+
 
 int main(int argc, char **argv){
     printf("Hello world");
