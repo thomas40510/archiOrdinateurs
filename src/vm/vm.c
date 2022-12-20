@@ -9,6 +9,7 @@
 #include <sys/types.h>
 #include <sys/termios.h>
 #include <sys/mman.h>
+#include <string.h>
 
 #include "constants.h"
 
@@ -65,6 +66,7 @@ void displayMem(){
 
 void writeReg(int reg, int value){
     regs[reg] = (value == 0) ? 0 : value;
+    printf("Write %d to r%d\n", value, reg);
 }
 
 void decodeInstr(int type) {
@@ -202,16 +204,16 @@ void execOp(int opcode){
         case OPCODE_LOAD:
             decodeInstr(TYPE_I);
             if (rs + imm < MEMSIZE) {
-                writeReg(rd, mem[rs + imm]);
+                writeReg(rd, mem[regs[rs] + imm]);
             } else {
                 printf("Error: Memory address out of bounds\n");
                 exit(1);
             }
             break;
         case OPCODE_STORE:
-            decodeInstr(TYPE_S);
-            if (rs + imm < MEMSIZE) {
-                mem[rs + imm] = val;
+            decodeInstr(TYPE_I);
+            if (rs + imm < MEMSIZE || rs + imm > 0) {
+                mem[regs[rs] + imm] = regs[rd];
             } else {
                 printf("Error: Memory address out of bounds\n");
                 exit(1);
@@ -219,42 +221,48 @@ void execOp(int opcode){
             break;
         case OPCODE_JMPR:
             decodeInstr(TYPE_JR);
+            writeReg(rd, pc);
             pc = regs[ra];
             break;
         case OPCODE_JMPI:
             decodeInstr(TYPE_JI);
+            writeReg(rd, pc);
             pc = addr;
             break;
         case OPCODE_BRAZ:
             decodeInstr(TYPE_B);
             if (regs[rs] == 0) {
-                pc += addr;
+                pc = addr;
             }
             break;
         case OPCODE_BRANZ:
             decodeInstr(TYPE_B);
             if (regs[rs] != 0) {
-                pc += addr;
+                pc = addr;
             }
             break;
         case OPCODE_SCALL:
             decodeInstr(TYPE_I);
+            int usrInput;
             switch (rs) {
                 case 0:
-                    printf("%d\n", regs[rd]);
+                    printf("Please enter an integer: ");
+                    scanf("%d", &usrInput);
+                    writeReg(20, usrInput);
                     break;
                 case 1:
-                    printf("%c", regs[rd]);
+                    printf("%c", regs[20]);
                     break;
                 case 2:
-                    scanf("%d", &regs[rd]);
+                    printf("%d", regs[20]);
                     break;
                 case 3:
-                    scanf("%d", &regs[rd]);
+                    printf("%c", regs[20] & 0x7f);
                     break;
                 default:
                     break;
             }
+            sleep(1);
             break;
         case OPCODE_STOP:
             isRunning = 0;
