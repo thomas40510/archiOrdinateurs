@@ -106,7 +106,6 @@ void execOp(int opcode){
         case OPCODE_ADD:
             decodeInstr(TYPE_R);
             writeReg(rd, regs[rs1] + regs[rs2]);
-            printf("add r%d, r%d, r%d\n", rd, rs1, rs2);
             break;
         case OPCODE_ADDI:
             decodeInstr(TYPE_I);
@@ -261,7 +260,7 @@ void execOp(int opcode){
             isRunning = 0;
             break;
         default:
-            printf("Error: Invalid opcode\n");
+            printf("Error: Invalid opcode %d\n", opcode);
             isRunning = 0;
             break;
     }
@@ -286,6 +285,7 @@ int main(int argc, char **argv) {
     char *filename = argv[1];
     readSource(filename);
     exec();
+    displayRegs();
 
     return EXIT_SUCCESS;
 }
