@@ -306,14 +306,17 @@ void execOp(int opcode){
             }
             break;
 
-        /* System call */
+        /* System call (in/out) */
         case OPCODE_SCALL:
             decodeInstr(TYPE_S);
             int usrInput;
             switch (val) {
                 case 0:  // user input
                     printf("Please enter an integer: ");
-                    scanf("%d", &usrInput);
+                    if (scanf("%d", &usrInput) != 1) {  // handle invalid input
+                        printf("Error: Invalid input\n");
+                        exit(1);
+                    }
                     writeReg(20, usrInput);
                     break;
                 case 1:
