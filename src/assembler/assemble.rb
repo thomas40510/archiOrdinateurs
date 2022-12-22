@@ -248,7 +248,10 @@ class Assembler
   end
 
   def bin2hex(bin)
-    bin.to_s(2).rjust(32, '0').scan(/.{4}/).map { |x| x.to_i(2).to_s(16) }.join
+    # convert to hexadecimal
+    res = bin.to_s(2).rjust(32, '0').scan(/.{4}/).map { |x| x.to_i(2).to_s(16) }.join
+    # reverse bytes : 00 00 00 87 -> 87 00 00 00
+    res.scan(/.{2}/).reverse.join
   end
 
   def _assemble
