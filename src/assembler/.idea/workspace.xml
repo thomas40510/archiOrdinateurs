@@ -5,7 +5,6 @@
   </component>
   <component name="ChangeListManager">
     <list default="true" id="22460c3a-2ae8-4efb-8201-0ef6fb27e701" name="Changes" comment="">
-      <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/assemble.rb" beforeDir="false" afterPath="$PROJECT_DIR$/assemble.rb" afterDir="false" />
     </list>
     <option name="SHOW_DIALOG" value="false" />
@@ -75,7 +74,7 @@
       <workItem from="1671659273548" duration="2201000" />
       <workItem from="1671690321090" duration="926000" />
       <workItem from="1671728088852" duration="2149000" />
-      <workItem from="1671730273742" duration="884000" />
+      <workItem from="1671730273742" duration="2396000" />
     </task>
     <servers />
   </component>
