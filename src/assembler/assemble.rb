@@ -1,4 +1,5 @@
 require 'colorize'
+require 'bindata'
 # class Assembler
 # Opens an asm file and extracts the instructions to binary
 # instantiate with Assembler.new('path_to_file', 'path_to_output_file')
@@ -25,7 +26,10 @@ class Assembler
       'scall' => 34,
       'stop' => 35
     }
-    @regs = %w[r0 r1 r2 r3 r4 r5 r6 r7 r8 r9 r10 r11 r12 r13 r14 r15 r16 r17 r18 r19 r20 r21 r22 r23 r24 r25 r26 r27 r28 r29 r30 r31]
+    @regs = %w[r0 r1 r2 r3 r4 r5 r6 r7 r8 r9
+               r10 r11 r12 r13 r14 r15 r16 r17 r18 r19
+               r20 r21 r22 r23 r24 r25 r26 r27 r28 r29
+               r30 r31]
     @regexes = {
       'stop' => /stop/,
       'add' => /add\s(r[0-9]|r[0-9][0-9]),((r|)[0-9]|r[0-9][0-9]),(r[0-9]|r[0-9][0-9])/,
@@ -67,21 +71,6 @@ class Assembler
       res << line unless line.empty?
     end
     res
-  end
-
-  def exec(save = true)
-    @labels = _readlabels
-    @operations = _readops
-    @assembled = _assemble
-    res = _gencontent
-    if save
-      File.open(@output, 'w') do |f|
-        f.write(res)
-      end
-      puts "[Log/I]: Assembled file saved to #{@output}"
-    else
-      printbinary
-    end
   end
 
   def _readlabels
@@ -259,7 +248,7 @@ class Assembler
   end
 
   def bin2hex(bin)
-    bin.to_i.to_s(16).rjust(8, '0')
+    bin.to_s(2).rjust(32, '0').scan(/.{4}/).map { |x| x.to_i(2).to_s(16) }.join
   end
 
   def _assemble
@@ -283,7 +272,7 @@ class Assembler
   def _gencontent
     res = ''
     @assembled.each do |instruction|
-      res += "#{instruction}\n"
+      res += instruction
     end
     res
   end
@@ -291,8 +280,32 @@ class Assembler
   def printbinary
     puts @assembled
   end
+
+  def exec(save = true)
+    @labels = _readlabels
+    @operations = _readops
+    @assembled = _assemble
+    res = _gencontent
+    if save
+      # check if output dir exists
+      outdir = File.dirname(@output)
+      Dir.mkdir(outdir) unless Dir.exist?(outdir)
+      File.open(@output, 'w') do |f|
+        # unpack the binary string into an array of 32-bit integers
+        # and write it to the file
+        f.write([res].pack('H*'))
+
+      end
+      puts "[Log/I]: Assembled file saved to #{@output}"
+    else
+      printbinary
+    end
+  end
+
 end
 
 
-a = Assembler.new('asm/test_asm.asm', 'out/test_asm.bin')
+
+
+a = Assembler.new('asm/fibo.asm', 'out/fibo.bin')
 a.exec(true)

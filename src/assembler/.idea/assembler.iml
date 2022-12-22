@@ -11,6 +11,7 @@
     </content>
     <orderEntry type="inheritedJdk" />
     <orderEntry type="sourceFolder" forTests="false" />
+    <orderEntry type="library" scope="PROVIDED" name="bindata (v2.4.14, ruby-2.6.3-p62) [gem]" level="application" />
     <orderEntry type="library" scope="PROVIDED" name="colorize (v0.8.1, ruby-2.6.3-p62) [gem]" level="application" />
   </component>
 </module>

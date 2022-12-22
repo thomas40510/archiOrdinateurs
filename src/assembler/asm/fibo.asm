@@ -1,4 +1,4 @@
-    scall 7                  ; input number from user
+    scall 0                  ; input number from user
     add r1 r0 r20            ; r1 = r20 (input from user)
     or r3 r0 -1              ; r3 = -1
     or r4 r0 1               ; r4 = 1
