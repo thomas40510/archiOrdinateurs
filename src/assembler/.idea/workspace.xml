@@ -6,6 +6,7 @@
   <component name="ChangeListManager">
     <list default="true" id="22460c3a-2ae8-4efb-8201-0ef6fb27e701" name="Changes" comment="">
       <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/assemble.rb" beforeDir="false" afterPath="$PROJECT_DIR$/assemble.rb" afterDir="false" />
     </list>
     <option name="SHOW_DIALOG" value="false" />
     <option name="HIGHLIGHT_CONFLICTS" value="true" />
@@ -73,6 +74,7 @@
       <workItem from="1671659110801" duration="154000" />
       <workItem from="1671659273548" duration="2201000" />
       <workItem from="1671690321090" duration="926000" />
+      <workItem from="1671728088852" duration="872000" />
     </task>
     <servers />
   </component>
@@ -80,6 +82,6 @@
     <option name="version" value="3" />
   </component>
   <component name="com.intellij.coverage.CoverageDataManagerImpl">
-    <SUITE FILE_PATH="coverage/assembler@assemble.rcov" NAME="assemble Coverage Results" MODIFIED="1671691241159" SOURCE_PROVIDER="com.intellij.coverage.DefaultCoverageFileProvider" RUNNER="rcov" COVERAGE_BY_TEST_ENABLED="true" COVERAGE_TRACING_ENABLED="false" WORKING_DIRECTORY="$PROJECT_DIR$" MODULE_NAME="assembler" />
+    <SUITE FILE_PATH="coverage/assembler@assemble.rcov" NAME="assemble Coverage Results" MODIFIED="1671728898979" SOURCE_PROVIDER="com.intellij.coverage.DefaultCoverageFileProvider" RUNNER="rcov" COVERAGE_BY_TEST_ENABLED="true" COVERAGE_TRACING_ENABLED="false" WORKING_DIRECTORY="$PROJECT_DIR$" MODULE_NAME="assembler" />
   </component>
 </project>
