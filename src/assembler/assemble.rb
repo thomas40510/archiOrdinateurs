@@ -1,9 +1,7 @@
 require 'colorize'
 require 'bindata'
-# class Assembler
-# Opens an asm file and extracts the instructions to binary
-# instantiate with Assembler.new('path_to_file', 'path_to_output_file')
-#
+require 'optparse'
+
 class Assembler
   def initialize(file, output = 'out/output.bin')
     @opcodes = {
@@ -164,7 +162,7 @@ class Assembler
   end
 
   def _isvalue(reg)
-    !@regs.include?(reg)
+    !@regs.include?(reg) && !@labels.include?(reg)
   end
 
   def op_binary(op, params)
@@ -172,7 +170,7 @@ class Assembler
 
     r2, v = v, r2 unless @regs.include?(v)
 
-    if _isvalue(r2)
+    if _isvalue(r2) && !@opcodes["#{op}i"].nil?
       op = @opcodes["#{op}i"] << 26
       r2 = _getaddr(r2) & 0x0000FFFF
     else
@@ -197,7 +195,7 @@ class Assembler
       rd = _getaddr(rd) << 16
     end
 
-    rd = _getaddr(rd) << 21
+    ra = _getaddr(ra) << 21
 
     op | rd | ra
     # res = @opcodes.index('jmp') << 26
@@ -308,7 +306,15 @@ class Assembler
 end
 
 
+# handle command-line params
+if ARGV.length != 2
+  puts 'Usage: assemble.rb input_file output_file'
+  exit(1)
+else
+  input = ARGV[0]
+  output = ARGV[1]
+end
 
-
-a = Assembler.new('asm/fibo.asm', 'out/fibo.bin')
-a.exec(true)
+# create assembler object and run it
+assembler = Assembler.new(input, output)
+assembler.exec

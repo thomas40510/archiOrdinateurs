@@ -74,7 +74,8 @@
       <workItem from="1671659110801" duration="154000" />
       <workItem from="1671659273548" duration="2201000" />
       <workItem from="1671690321090" duration="926000" />
-      <workItem from="1671728088852" duration="872000" />
+      <workItem from="1671728088852" duration="2149000" />
+      <workItem from="1671730273742" duration="884000" />
     </task>
     <servers />
   </component>
@@ -82,6 +83,6 @@
     <option name="version" value="3" />
   </component>
   <component name="com.intellij.coverage.CoverageDataManagerImpl">
-    <SUITE FILE_PATH="coverage/assembler@assemble.rcov" NAME="assemble Coverage Results" MODIFIED="1671728898979" SOURCE_PROVIDER="com.intellij.coverage.DefaultCoverageFileProvider" RUNNER="rcov" COVERAGE_BY_TEST_ENABLED="true" COVERAGE_TRACING_ENABLED="false" WORKING_DIRECTORY="$PROJECT_DIR$" MODULE_NAME="assembler" />
+    <SUITE FILE_PATH="coverage/assembler@assemble.rcov" NAME="assemble Coverage Results" MODIFIED="1671731100481" SOURCE_PROVIDER="com.intellij.coverage.DefaultCoverageFileProvider" RUNNER="rcov" COVERAGE_BY_TEST_ENABLED="true" COVERAGE_TRACING_ENABLED="false" WORKING_DIRECTORY="$PROJECT_DIR$" MODULE_NAME="assembler" />
   </component>
 </project>
